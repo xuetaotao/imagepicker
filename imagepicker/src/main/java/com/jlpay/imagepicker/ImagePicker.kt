@@ -219,6 +219,9 @@ class ImagePicker private constructor(builder: Builder) {
                     }
 //                    Log.e(TAG,
 //                        "复制图片到APP外部私有目录的线程：" + Thread.currentThread().name)//RxCachedThreadScheduler-1
+                    val inputStream: InputStream =
+                        MediaUtils.Images.getImageFromPic(fragmentActivity, t)
+                            ?: return Observable.error(Exception(ErrorCodeBean.Message.PIC_CHOOSE_NOT_EXIST))
                     val copyImgFromPicToAppPic: String? =
                         mediaUtils.copyImgFromPicToAppPic(fragmentActivity, t)
                     if (copyImgFromPicToAppPic == null || TextUtils.isEmpty(copyImgFromPicToAppPic)) {
@@ -270,6 +273,9 @@ class ImagePicker private constructor(builder: Builder) {
                     if (!isCamera && !TextUtils.isEmpty(picToAppPicPath)) {
                         return Observable.just(picToAppPicPath)
                     }
+                    val inputStream: InputStream =
+                        MediaUtils.Images.getImageFromPic(fragmentActivity, t)
+                            ?: return Observable.error(Exception(ErrorCodeBean.Message.PIC_CHOOSE_NOT_EXIST))
                     val copyImgFromPicToAppPic: String? =
                         mediaUtils.copyImgFromPicToAppPic(fragmentActivity, t)
                     if (copyImgFromPicToAppPic == null || TextUtils.isEmpty(copyImgFromPicToAppPic)) {

@@ -236,37 +236,6 @@ class MediaUtils : IAndroid11Upgrade {
                 return uri
             }
 
-            /**
-             * 根据图片Uri获取图片Path路径，仅建议APP外部私有目录下使用该方法
-             * Android10下外部存储不能直接通过文件路径访问文件
-             *
-             * TODO 有点问题，先别用
-             */
-            fun getImagePath(context: Context, uri: Uri): String? {
-                var imagePath: String? = null
-                // 以 file:// 开头的，比如 file://storage/emulated/0/Android/data/com.jlpay.kotlindemo/files/Image/IMG1625477375523.jpg
-                if (ContentResolver.SCHEME_FILE == uri.scheme) {
-                    imagePath = uri.path
-                }
-                // 以 content:// 开头的，比如 content://com.jlpay.kotlindemo.FileProvider/external_files_path/Image/IMG1625475923370.jpg
-                else if (ContentResolver.SCHEME_CONTENT == uri.scheme) {
-                    var cursor: Cursor? = null
-                    val projection = arrayOf(MediaStore.Images.ImageColumns.DATA)
-                    try {
-                        cursor = context.contentResolver.query(uri, projection, null, null, null)
-                        if (cursor != null && cursor.moveToFirst()) {
-                            val columnIndex: Int = cursor.getColumnIndexOrThrow(projection[0])
-                            imagePath = cursor.getString(columnIndex)
-                        }
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                        return null
-                    } finally {
-                        cursor?.close()
-                    }
-                }
-                return imagePath
-            }
 
             /**
              * 创建图片Uri

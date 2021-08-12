@@ -31,6 +31,7 @@ object ErrorCodeBean {
         const val CROP_PIC_RESULT_FAIL_MSG = "resultCode!=RESULT_OK，裁剪图片回调失败"
 
         const val PIC_COPY_TOAPPPIC_FAIL_MSG = "图片复制到APP外部私有目录失败"
+        const val PIC_CHOOSE_NOT_EXIST = "图片文件不存在"
         const val APPPIC_URI_NULL_MSG = "APP私有目录下图片获取Uri出错"
         const val APPPIC_TO_PATH_FAIL_MSG = "图片Uri转换图片路径Path失败"
 
