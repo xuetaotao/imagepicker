@@ -6,17 +6,26 @@
 
 ### 1.在app moudle的gradle配置依赖库
 
-      implementation 'com.jlpay.opensdk:imageload:2.0.1'
-
-      //RxJava2
-      implementation 'io.reactivex.rxjava2:rxjava:2.2.21'
-      implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
-
-      //RxPermissions  https://github.com/tbruyelle/RxPermissions
-      implementation 'com.github.tbruyelle:rxpermissions:0.10.2'
-
-      //图片压缩(按需添加) https://github.com/Curzibn/Luban
-      implementation 'top.zibin:Luban:1.1.8'
+        allprojects {
+            repositories {
+                ...
+                maven { url 'https://jitpack.io' }
+            }
+        }
+        
+        dependencies {
+            implementation 'com.github.xuetaotao:imagepicker:1.0.1'
+            
+            //RxJava2
+            implementation 'io.reactivex.rxjava2:rxjava:2.2.21'
+            implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
+              
+            //RxPermissions  https://github.com/tbruyelle/RxPermissions
+            implementation 'com.github.tbruyelle:rxpermissions:0.10.2'
+                    
+            //图片压缩(按需添加，如果使用LuBan压缩的话) https://github.com/Curzibn/Luban
+            implementation 'top.zibin:Luban:1.1.8'
+        }
 
 ### 2.具体使用
 
