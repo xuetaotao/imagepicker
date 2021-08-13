@@ -1,0 +1,7 @@
+## V1.0.2（2021-08-13）
+- 1.添加部分jitpack要求的gradle配置
+- 2.添加ImagePicker库的测试用例
+- 3.更新versionName和versionCode
+
+## V1.0.1（2021-08-12）
+- 1.ImagePicker库初始版本提交
