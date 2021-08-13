@@ -12,6 +12,7 @@ import top.zibin.luban.OnCompressListener
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
+import kotlin.math.max
 
 class ImageCompress {
 
@@ -56,7 +57,8 @@ class ImageCompress {
         if (TextUtils.isEmpty(createAppPicDir)) {
             listener.onFailed(
                 ErrorCodeBean.Message.APPPIC_DIR_CREATE_FAIL_MSG,
-                ErrorCodeBean.Code.IMAGE_COMPRESS_CODE)
+                ErrorCodeBean.Code.IMAGE_COMPRESS_CODE
+            )
             return
         }
         Luban.with(context)
@@ -72,15 +74,18 @@ class ImageCompress {
                     if (file == null) {
                         listener.onFailed(
                             ErrorCodeBean.Message.LUBAN_FILE_NULL_MSG,
-                            ErrorCodeBean.Code.IMAGE_COMPRESS_CODE)
+                            ErrorCodeBean.Code.IMAGE_COMPRESS_CODE
+                        )
                     } else {
                         listener.onSuccess(file.absolutePath)
                     }
                 }
 
                 override fun onError(e: Throwable?) {
-                    listener.onFailed(e?.message ?: ErrorCodeBean.Message.LUBAN_UNKNOWN_MSG,
-                        ErrorCodeBean.Code.IMAGE_COMPRESS_CODE)
+                    listener.onFailed(
+                        e?.message ?: ErrorCodeBean.Message.LUBAN_UNKNOWN_MSG,
+                        ErrorCodeBean.Code.IMAGE_COMPRESS_CODE
+                    )
                 }
             })
             .launch()
@@ -119,7 +124,8 @@ class ImageCompress {
             e.printStackTrace()
             listener.onFailed(
                 ErrorCodeBean.Message.BITMAP_OUTOFMEMORY_MSG + e.message,
-                ErrorCodeBean.Code.IMAGE_COMPRESS_CODE)
+                ErrorCodeBean.Code.IMAGE_COMPRESS_CODE
+            )
             return
         }
         val byteArrayOutputStream: ByteArrayOutputStream = ByteArrayOutputStream()
@@ -137,14 +143,17 @@ class ImageCompress {
             compressTime++
 
             bitmap.compress(Bitmap.CompressFormat.JPEG, qualityCurrent, byteArrayOutputStream)
-            Log.d(TAG,
-                (byteArrayOutputStream.toByteArray().size / 1024).toString() + "KB" + "\t" + "quality = " + quality)
+            Log.d(
+                TAG,
+                (byteArrayOutputStream.toByteArray().size / 1024).toString() + "KB" + "\t" + "quality = " + quality
+            )
         }
         val createAppPicDir = MediaUtils.Images.createAppPicDir(context, imgDirName)
         if (TextUtils.isEmpty(createAppPicDir)) {
             listener.onFailed(
                 ErrorCodeBean.Message.APPPIC_DIR_CREATE_FAIL_MSG,
-                ErrorCodeBean.Code.IMAGE_COMPRESS_CODE)
+                ErrorCodeBean.Code.IMAGE_COMPRESS_CODE
+            )
             return
         }
         val file = File(createAppPicDir, "IMG" + System.currentTimeMillis() + ".jpg")
@@ -160,7 +169,8 @@ class ImageCompress {
             e.printStackTrace()
             listener.onFailed(
                 ErrorCodeBean.Message.STREAM_FAIL_MSG,
-                ErrorCodeBean.Code.IMAGE_COMPRESS_CODE)
+                ErrorCodeBean.Code.IMAGE_COMPRESS_CODE
+            )
         } finally {
             bitmapRecycle(bitmap)
         }
@@ -216,17 +226,23 @@ class ImageCompress {
             return
         }
 
-        var sampleSize: Int = 1
-        while ((width / sampleSize > reqWidth) || (height / sampleSize > reqHeight)) {
-            sampleSize *= 2
-        }
+        //保证绝对压缩到 reqWidth*reqHeight
+//        var sampleSize: Int = 1
+//        while ((width / sampleSize > reqWidth) || (height / sampleSize > reqHeight)) {
+//            sampleSize *= 2
+//        }
+
+        //不保证绝对压缩到需求的尺寸，接近略大于
+        val sampleSize = max((width / reqWidth), (height / reqHeight))
         options.inSampleSize = sampleSize
+        Log.d(TAG, "options.inSampleSize：" + options.inSampleSize)
         try {
             bitmap = BitmapFactory.decodeFile(imagePath, options)
         } catch (e: OutOfMemoryError) {
             listener.onFailed(
                 ErrorCodeBean.Message.BITMAP_OUTOFMEMORY_MSG + e.message,
-                ErrorCodeBean.Code.IMAGE_COMPRESS_CODE)
+                ErrorCodeBean.Code.IMAGE_COMPRESS_CODE
+            )
             return
         }
         bitmap = rotatePicByDegree(bitmap, getPictureDegree(imagePath))
@@ -235,9 +251,11 @@ class ImageCompress {
         var qualityCurrent = 100
         var compressTime: Int = 0
 
-        Log.d(TAG,
+        Log.d(
+            TAG,
             (byteArrayOutputStream.toByteArray().size / 1024).toString() + "KB" + "\t" + "qualityCurrent = " + qualityCurrent
-                    + "\t" + "compressTime = " + compressTime)
+                    + "\t" + "compressTime = " + compressTime
+        )
 
         while (byteArrayOutputStream.toByteArray().size / 1024 > ignoreSize && qualityCurrent >= quality) {
             byteArrayOutputStream.reset()
@@ -251,16 +269,19 @@ class ImageCompress {
 
             bitmap.compress(Bitmap.CompressFormat.JPEG, qualityCurrent, byteArrayOutputStream)
 
-            Log.d(TAG,
+            Log.d(
+                TAG,
                 (byteArrayOutputStream.toByteArray().size / 1024).toString() + "KB" + "\t" + "qualityCurrent = " + qualityCurrent
-                        + "\t" + "compressTime = " + compressTime)
+                        + "\t" + "compressTime = " + compressTime
+            )
         }
 
         val createAppPicDir = MediaUtils.Images.createAppPicDir(context, imgDirName)
         if (TextUtils.isEmpty(createAppPicDir)) {
             listener.onFailed(
                 ErrorCodeBean.Message.APPPIC_DIR_CREATE_FAIL_MSG,
-                ErrorCodeBean.Code.IMAGE_COMPRESS_CODE)
+                ErrorCodeBean.Code.IMAGE_COMPRESS_CODE
+            )
             return
         }
         val file = File(createAppPicDir, "IMG" + System.currentTimeMillis() + ".jpg")
@@ -276,7 +297,8 @@ class ImageCompress {
             e.printStackTrace()
             listener.onFailed(
                 ErrorCodeBean.Message.STREAM_FAIL_MSG,
-                ErrorCodeBean.Code.IMAGE_COMPRESS_CODE)
+                ErrorCodeBean.Code.IMAGE_COMPRESS_CODE
+            )
         } finally {
             bitmapRecycle(bitmap)
         }
@@ -300,8 +322,10 @@ class ImageCompress {
         var degree: Int = 0
         try {
             val exifInterface: ExifInterface = ExifInterface(imagePath)
-            val orientation: Int = exifInterface.getAttributeInt(ExifInterface.TAG_ORIENTATION,
-                ExifInterface.ORIENTATION_NORMAL)
+            val orientation: Int = exifInterface.getAttributeInt(
+                ExifInterface.TAG_ORIENTATION,
+                ExifInterface.ORIENTATION_NORMAL
+            )
             when (orientation) {
                 ExifInterface.ORIENTATION_ROTATE_90 -> degree = 90
                 ExifInterface.ORIENTATION_ROTATE_180 -> degree = 180
