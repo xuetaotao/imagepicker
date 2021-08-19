@@ -5,14 +5,24 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="15dp"
-    tools:context=".MainActivity">
+    tools:context="com.jlpay.demo.MainActivity">
 
     <Button
         android:id="@+id/btn_imagepicker"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:onClick="imagePickerTest"
-        android:text="Test ImagePicker"
+        android:text="测试相册选择照片"
+        android:textAllCaps="false"
+        android:textColor="#555555"
+        android:textSize="14sp" />
+
+    <Button
+        android:id="@+id/btn_imagepicker_camera"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="imagePickerCamera"
+        android:text="测试拍照"
         android:textAllCaps="false"
         android:textColor="#555555"
         android:textSize="14sp" />

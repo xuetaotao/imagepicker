@@ -6,7 +6,7 @@ android {
     buildToolsVersion "30.0.3"
 
     defaultConfig {
-        applicationId "com.jlpay.imagepicker"
+        applicationId "com.jlpay.demo"
         minSdkVersion 19
         targetSdkVersion 30
         versionCode 1
@@ -34,7 +34,8 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
 
-    implementation 'com.github.xuetaotao:imagepicker:1.0.3'
+//    implementation 'com.github.xuetaotao:imagepicker:1.0.3'
+    implementation(project(":imagepicker"))
 
     //RxJava2
     implementation 'io.reactivex.rxjava2:rxjava:2.2.21'
