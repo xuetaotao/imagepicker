@@ -157,13 +157,17 @@ class ImagePicker private constructor(builder: Builder) {
             .flatMap {
 //                Log.e(TAG, "请求权限的线程：" + Thread.currentThread().name)//main
                 if (isCamera) {
-                    RxPermissions(fragmentActivity).request(android.Manifest.permission.CAMERA,
+                    RxPermissions(fragmentActivity).request(
+                        android.Manifest.permission.CAMERA,
                         android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                        android.Manifest.permission.READ_EXTERNAL_STORAGE)
+                        android.Manifest.permission.READ_EXTERNAL_STORAGE
+                    )
                 } else {
                     RxPermissions(fragmentActivity)
-                        .request(android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                            android.Manifest.permission.READ_EXTERNAL_STORAGE)
+                        .request(
+                            android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                            android.Manifest.permission.READ_EXTERNAL_STORAGE
+                        )
                 }
             }
             //调起拍照/选择相册
@@ -180,7 +184,8 @@ class ImagePicker private constructor(builder: Builder) {
                         return requestImplementation(
                             ImageOperationKind.TAKE_PHOTO,
                             createImgContentPicUri,
-                            null)
+                            null
+                        )
                             .flatMap(object : Function<ImagePickerResult, ObservableSource<Uri>> {
                                 override fun apply(t: ImagePickerResult): ObservableSource<Uri> {
                                     if (t.resultCode == Activity.RESULT_CANCELED) {
@@ -229,9 +234,11 @@ class ImagePicker private constructor(builder: Builder) {
                     }
                     picToAppPicPath =
                         copyImgFromPicToAppPic//全局变量保存当前复制到APP外部私有目录的路径，以便跳过压缩前复制那一步
-                    val imageContentUri: Uri = mediaUtils.getImageContentUri(fragmentActivity,
+                    val imageContentUri: Uri = mediaUtils.getImageContentUri(
+                        fragmentActivity,
                         copyImgFromPicToAppPic,
-                        authority)
+                        authority
+                    )
                         ?: return Observable.error(Exception(ErrorCodeBean.Message.APPPIC_URI_NULL_MSG))
                     return Observable.just(imageContentUri)
                 }
@@ -271,7 +278,11 @@ class ImagePicker private constructor(builder: Builder) {
 //                        "复制图片到APP外部私有目录的线程2：" + Thread.currentThread().name)//RxCachedThreadScheduler-1
                     //从相册选择图片，前一步已经做过复制操作，这里跳过
                     if (!isCamera && !TextUtils.isEmpty(picToAppPicPath)) {
-                        return Observable.just(picToAppPicPath)
+                        if (!crop) {
+                            return Observable.just(picToAppPicPath)
+                        } else {
+                            val delete = File(picToAppPicPath).delete()
+                        }
                     }
                     val inputStream: InputStream =
                         MediaUtils.Images.getImageFromPic(fragmentActivity, t)
@@ -328,8 +339,10 @@ class ImagePicker private constructor(builder: Builder) {
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({ t -> listener?.onSuccess(t!!) }
             ) { t ->
-                listener?.onFailed(t?.message ?: ErrorCodeBean.Message.UNKNOWN_ERROR_MSG,
-                    ErrorCodeBean.Code.IMAGE_PICKER_CODE)
+                listener?.onFailed(
+                    t?.message ?: ErrorCodeBean.Message.UNKNOWN_ERROR_MSG,
+                    ErrorCodeBean.Code.IMAGE_PICKER_CODE
+                )
             }
     }
 
@@ -422,19 +435,22 @@ class ImagePicker private constructor(builder: Builder) {
             if (!checkRxJavaSdk()) {
                 listener?.onFailed(
                     ErrorCodeBean.Message.LEAK_LIBRARY_RXJAVA_MSG,
-                    ErrorCodeBean.Code.LEAK_LIBRARY_CODE)
+                    ErrorCodeBean.Code.LEAK_LIBRARY_CODE
+                )
                 return
             }
             if (!checkRxPermissionsSdk()) {
                 listener?.onFailed(
                     ErrorCodeBean.Message.LEAK_LIBRARY_RXPERMISSIONS_MSG,
-                    ErrorCodeBean.Code.LEAK_LIBRARY_CODE)
+                    ErrorCodeBean.Code.LEAK_LIBRARY_CODE
+                )
                 return
             }
             if (compress && compressType == ImageCompress.ImageCompressType.LuBan && !checkLuBanSdk()) {
                 listener?.onFailed(
                     ErrorCodeBean.Message.LEAK_LIBRARY_LUBAN_MSG,
-                    ErrorCodeBean.Code.LEAK_LIBRARY_CODE)
+                    ErrorCodeBean.Code.LEAK_LIBRARY_CODE
+                )
                 return
             }
             build().startPick()
