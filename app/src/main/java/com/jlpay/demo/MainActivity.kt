@@ -50,7 +50,7 @@ class MainActivity : AppCompatActivity() {
                 }
             })
             .compress(true)
-            .crop(true)
+            .crop(false)
             .isCamera(true)
             .startPick()
     }

@@ -3,6 +3,7 @@ package com.jlpay.imagepicker
 import android.app.Activity
 import android.net.Uri
 import android.text.TextUtils
+import android.util.Log
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentManager
@@ -244,38 +245,34 @@ class ImagePicker private constructor(builder: Builder) {
                 }
             })
             //图片裁剪
-            .compose(object : ObservableTransformer<Uri, Uri> {
-                override fun apply(upstream: Observable<Uri>): ObservableSource<Uri> {
-//                    Log.e(TAG, "图片裁剪compose的线程：" + Thread.currentThread().name)//main 为什么???
+            .flatMap(object : Function<Uri, ObservableSource<Uri>> {
+                override fun apply(t: Uri): ObservableSource<Uri> {
+//                    Log.e(TAG,
+//                        "图片裁剪的线程2：" + Thread.currentThread().name)//RxCachedThreadScheduler-1
                     if (!crop) {
-                        return upstream
+                        return Observable.just(t)
                     }
                     val cropOutputUri: Uri =
                         mediaUtils.createImgContentPicUri(fragmentActivity)//这里只能是外部共享目录，否则会报保存错误
                             ?: return Observable.error(Exception(ErrorCodeBean.Message.CROP_PUBPIC_URI_FAIL_MSG))
-                    return upstream.flatMap { t ->
-//                        Log.e(TAG,
-//                            "图片裁剪的线程：" + Thread.currentThread().name)//RxCachedThreadScheduler-1
-                        requestImplementation(ImageOperationKind.IMAGE_CROP, t, cropOutputUri)
-                            .flatMap(object :
-                                Function<ImagePickerResult, ObservableSource<Uri>> {
-                                override fun apply(t: ImagePickerResult): ObservableSource<Uri> {
-                                    if (t.resultCode == Activity.RESULT_CANCELED) {
-                                        return Observable.error(Exception(ErrorCodeBean.Message.USER_CANCELED + ErrorCodeBean.Code.CANCEL_CODE))
-                                    } else if (t.resultCode != Activity.RESULT_OK) {
-                                        return Observable.error(Exception(ErrorCodeBean.Message.CROP_PIC_RESULT_FAIL_MSG + t.resultCode))
-                                    }
-                                    return Observable.just(cropOutputUri)
+                    return requestImplementation(ImageOperationKind.IMAGE_CROP, t, cropOutputUri)
+                        .flatMap(object : Function<ImagePickerResult, ObservableSource<Uri>> {
+                            override fun apply(t: ImagePickerResult): ObservableSource<Uri> {
+                                if (t.resultCode == Activity.RESULT_CANCELED) {
+                                    return Observable.error(Exception(ErrorCodeBean.Message.USER_CANCELED + ErrorCodeBean.Code.CANCEL_CODE))
+                                } else if (t.resultCode != Activity.RESULT_OK) {
+                                    return Observable.error(Exception(ErrorCodeBean.Message.CROP_PIC_RESULT_FAIL_MSG + t.resultCode))
                                 }
-                            })
-                    }
+                                return Observable.just(cropOutputUri)
+                            }
+                        })
                 }
             })
             .observeOn(Schedulers.io())
             .flatMap(object : Function<Uri, ObservableSource<String>> {
                 override fun apply(t: Uri): ObservableSource<String> {
 //                    Log.e(TAG,
-//                        "复制图片到APP外部私有目录的线程2：" + Thread.currentThread().name)//RxCachedThreadScheduler-1
+//                        "复制图片到APP外部私有目录的线程2：" + Thread.currentThread().name)//RxCachedThreadScheduler-2
                     //从相册选择图片，前一步已经做过复制操作，这里跳过
                     if (!isCamera && !TextUtils.isEmpty(picToAppPicPath)) {
                         if (!crop) {
@@ -296,44 +293,37 @@ class ImagePicker private constructor(builder: Builder) {
                 }
             })
             //图片压缩
-            .compose(object : ObservableTransformer<String, String> {
-                override fun apply(upstream: Observable<String>): ObservableSource<String> {
-//                    Log.e(TAG, "图片压缩compose的线程：" + Thread.currentThread().name)//main
-                    return upstream.flatMap(object : Function<String, ObservableSource<String>> {
-                        override fun apply(t: String): ObservableSource<String> {
-//                            Log.e(TAG,
-//                                "图片压缩的线程22：" + Thread.currentThread().name)//RxCachedThreadScheduler-1
-                            if (!compress) {
-                                return Observable.just(t)
-                            }
+            .flatMap(object : Function<String, ObservableSource<String>> {
+                override fun apply(t: String): ObservableSource<String> {
+                    if (!compress) {
+                        return Observable.just(t)
+                    }
 
-                            return Observable.create { emitter ->
-//                                Log.e(TAG,
-//                                    "图片压缩的线程33：" + Thread.currentThread().name)//RxCachedThreadScheduler-1
-                                ImageCompress(imgDirName).compress(fragmentActivity,
-                                    t,
-                                    compressType,
-                                    compressIgnoreSize,
-                                    reqSize,
-                                    object : ImageCompress.ImageCompressListener {
-                                        override fun onSuccess(imageCompressPath: String) {
-//                                            Log.e(TAG, "压缩后图片路径：$imageCompressPath")
-                                            if (!TextUtils.equals(imageCompressPath, t)) {
-                                                val delete = File(t).delete()
-//                                                Log.e(TAG, "复制到APP私有目录下的原图删除结果：$delete")
-                                            }
-                                            emitter.onNext(imageCompressPath)
-//                                            Log.e(TAG,
-//                                                "压缩后图片大小：" + File(imageCompressPath).length())
-                                        }
+                    return Observable.create { emitter ->
+//                        Log.e(TAG,
+//                            "图片压缩的线程33：" + Thread.currentThread().name)//RxCachedThreadScheduler-2
+                        ImageCompress(imgDirName).compress(fragmentActivity,
+                            t,
+                            compressType,
+                            compressIgnoreSize,
+                            reqSize,
+                            object : ImageCompress.ImageCompressListener {
+                                override fun onSuccess(imageCompressPath: String) {
+//                                    Log.e(TAG, "压缩后图片路径：$imageCompressPath")
+                                    if (!TextUtils.equals(imageCompressPath, t)) {
+                                        val delete = File(t).delete()
+//                                        Log.e(TAG, "复制到APP私有目录下的原图删除结果：$delete")
+                                    }
+                                    emitter.onNext(imageCompressPath)
+//                                    Log.e(TAG,
+//                                        "压缩后图片大小：" + File(imageCompressPath).length())
+                                }
 
-                                        override fun onFailed(msg: String, code: String) {
-                                            emitter.onError(Exception(msg))
-                                        }
-                                    })
-                            }
-                        }
-                    })
+                                override fun onFailed(msg: String, code: String) {
+                                    emitter.onError(Exception(msg))
+                                }
+                            })
+                    }
                 }
             })
             .observeOn(AndroidSchedulers.mainThread())
