@@ -14,7 +14,7 @@
         }
         
         dependencies {
-            implementation 'com.github.xuetaotao:imagepicker:1.0.3'
+            implementation 'com.github.xuetaotao:imagepicker:1.0.4'
             
             //RxJava2
             implementation 'io.reactivex.rxjava2:rxjava:2.2.21'
